@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+backend/venv/
+venv/
+env/
+__pycache__/
+
+# Databases
+*.db
+*.sqlite3
+
+# Build outputs
+frontend/dist/
+frontend/build/
+
+# Environment variables
+.env
+.env.local
+
+# OS generated files
+.DS_Store
+Thumbs.db
