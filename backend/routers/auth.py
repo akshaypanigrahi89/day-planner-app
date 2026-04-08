@@ -12,7 +12,18 @@ def register(user: schemas.UserCreate, db: Session = Depends(database.get_db)):
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     hashed_password = auth.get_password_hash(user.password)
-    new_user = models.User(email=user.email, hashed_password=hashed_password)
+    new_user = models.User(
+        email=user.email, 
+        hashed_password=hashed_password,
+        full_name=user.full_name,
+        profession=user.profession,
+        location=user.location,
+        phone_no=user.phone_no,
+        otp_verified=user.otp_verified,
+        state=user.state,
+        city=user.city,
+        country=user.country
+    )
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
@@ -27,6 +38,10 @@ def update_user_me(user_update: schemas.UserUpdate, db: Session = Depends(databa
     if user_update.full_name: current_user.full_name = user_update.full_name
     if user_update.profession: current_user.profession = user_update.profession
     if user_update.location: current_user.location = user_update.location
+    if user_update.phone_no: current_user.phone_no = user_update.phone_no
+    if user_update.state: current_user.state = user_update.state
+    if user_update.city: current_user.city = user_update.city
+    if user_update.country: current_user.country = user_update.country
     db.commit()
     db.refresh(current_user)
     return current_user

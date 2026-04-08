@@ -7,11 +7,20 @@ class UserBase(BaseModel):
     full_name: Optional[str] = "DayPlanner User"
     profession: Optional[str] = "Professional"
     location: Optional[str] = "Earth"
+    phone_no: Optional[str] = None
+    otp_verified: Optional[bool] = False
+    state: Optional[str] = None
+    city: Optional[str] = None
+    country: Optional[str] = None
 
 class UserUpdate(BaseModel):
     full_name: Optional[str] = None
     profession: Optional[str] = None
     location: Optional[str] = None
+    phone_no: Optional[str] = None
+    state: Optional[str] = None
+    city: Optional[str] = None
+    country: Optional[str] = None
 
 class UserCreate(UserBase):
     password: str

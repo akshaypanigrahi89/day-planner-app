@@ -5,7 +5,8 @@ import { Check, X, Play, Square } from 'lucide-react';
 
 const emptyTask = () => {
   const d = new Date();
-  return { title: '', category: '', date: d.toISOString().split('T')[0], day: d.toLocaleDateString('en-US',{weekday:'long'}), progress: 0, comment: '', subtasks_str: '', status: 'Todo', priority: 'Medium' };
+  const localDateStr = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+  return { title: '', category: '', date: localDateStr, day: d.toLocaleDateString('en-US',{weekday:'long'}), progress: 0, comment: '', subtasks_str: '', status: 'Todo', priority: 'Medium' };
 };
 
 const inputStyle = { margin:0, padding:'0.4rem', border:'1px solid var(--surface-border)', borderRadius:'4px', background:'var(--background)', width:'100%', fontSize:'0.82rem' };
@@ -73,7 +74,7 @@ export default function TaskView() {
            {timer > 0 && !timerActive && <button onClick={()=>setTimer(0)} style={{ background:'none', border:'none', color:'var(--danger)', cursor:'pointer', fontSize:'0.8rem', fontWeight:600 }}>Reset</button>}
         </div>
         
-        <motion.button whileHover={{ scale:1.05 }} onClick={()=>api.post('/tasks/review',{date:new Date().toISOString().split('T')[0]}).then(()=>{alert('Archived!'); fetchTasks();})} className="btn-primary" style={{ backgroundColor:'var(--text-main)', border:'none' }}>End-Day Review</motion.button>
+        <motion.button whileHover={{ scale:1.05 }} onClick={()=>api.post('/tasks/review',{date:new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]}).then(()=>{alert('Archived!'); fetchTasks();})} className="btn-primary" style={{ backgroundColor:'var(--text-main)', border:'none' }}>End-Day Review</motion.button>
       </div>
 
       {/* EXACT EXCEL SHEET MAPPING AS REQUESTED */}

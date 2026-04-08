@@ -4,7 +4,7 @@ import api from '../api';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 import { Droplet, Plus, Minus, Bell, Star } from 'lucide-react';
 
-export default function DashboardView() {
+export default function DashboardView({ profile }) {
   const [tasks, setTasks] = useState([]);
   const [insights, setInsights] = useState("Loading AI insights...");
   const [water, setWater] = useState(parseInt(localStorage.getItem('water_intake')) || 0);
@@ -67,7 +67,9 @@ export default function DashboardView() {
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ padding: '2rem 4rem', display: 'flex', flexDirection: 'column', gap: '2rem', height: '100%', overflowY: 'auto' }}>
       
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ fontSize: '1.8rem', color: 'var(--text-main)' }}>Interactive Dashboard</h2>
+        <h2 style={{ fontSize: '1.8rem', color: 'var(--text-main)' }}>
+           Hi {profile?.full_name?.split(' ')[0] || 'User'}, here is your dashboard
+        </h2>
         <div style={{ display: 'flex', gap: '1.5rem', background: 'white', padding: '0.8rem 1.5rem', borderRadius: '30px', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', fontWeight: 600 }}>
           <span style={{ color: 'var(--text-muted)' }}>Total: {currentTasks.length}</span>
           <span style={{ color: 'var(--warning)' }}>Todo: {todo}</span>

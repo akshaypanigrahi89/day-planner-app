@@ -11,8 +11,8 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 export default function Dashboard({ setToken }) {
   const [tasks, setTasks] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState(null);
+  const [profile, setProfile] = useState(null);
 
   const fetchTasks = async () => {
     try {
@@ -23,7 +23,10 @@ export default function Dashboard({ setToken }) {
     }
   };
 
-  useEffect(() => { fetchTasks(); }, []);
+  useEffect(() => { 
+    fetchTasks();
+    api.get('/auth/me').then(res => setProfile(res.data)).catch(err => console.error(err));
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -150,7 +153,9 @@ export default function Dashboard({ setToken }) {
     <div className="app-container" style={{ background: 'var(--background)' }}>
       {/* Sidebar */}
       <div className="glass-panel sidebar" style={{ border: 'none', background: 'white', boxShadow: '1px 0 10px rgba(0,0,0,0.05)' }}>
-        <h2 style={{ color: 'var(--primary)', marginBottom: '1rem' }}>Day Planner</h2>
+        <h2 style={{ color: 'var(--primary)', marginBottom: '1rem' }}>
+          Hi {profile?.full_name?.split(' ')[0] || 'User'},<br/><span style={{ fontSize: '1rem', color: 'var(--text-muted)', fontWeight: 500 }}>here is your dashboard.</span>
+        </h2>
         
         <div style={{ marginTop: '1rem' }}>
           <h4 style={{ color: 'var(--text-muted)', marginBottom: '1rem' }}>{selectedDate} Summary</h4>

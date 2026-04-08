@@ -1,13 +1,19 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
 import Auth from './components/Auth';
 import DashboardView from './components/DashboardView';
 import TaskView from './components/TaskView';
 import ProfileView from './components/ProfileView';
+import api from './api';
 
 function Layout({ token, setToken }) {
   const location = useLocation();
   const isActive = (path) => location.pathname === path;
+  const [profile, setProfile] = useState(null);
+
+  useEffect(() => {
+    api.get('/auth/me').then(res => setProfile(res.data)).catch(err => console.log(err));
+  }, []);
 
   return (
     <div className="app-container" style={{ flexDirection: 'column' }}>
@@ -23,8 +29,8 @@ function Layout({ token, setToken }) {
         {/* Right Corner Profile Trigger */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
           <Link to="/profile" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.4rem 1rem', borderRadius: '30px', background: isActive('/profile') ? 'rgba(79,70,229,0.1)' : 'transparent', transition: 'all 0.3s' }}>
-             <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary), var(--secondary))', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>A</div>
-             <span style={{ fontWeight: 600, color: isActive('/profile') ? 'var(--primary)' : 'var(--text-main)' }}>Akshay Sharma</span>
+             <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary), var(--secondary))', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>{profile?.full_name ? profile.full_name[0].toUpperCase() : 'U'}</div>
+             <span style={{ fontWeight: 600, color: isActive('/profile') ? 'var(--primary)' : 'var(--text-main)' }}>{profile?.full_name || 'User'}</span>
           </Link>
           <button className="btn-secondary" style={{ padding: '0.4rem 1rem', background: '#f8fafc', color: 'var(--danger)', border: '1px solid rgba(239, 68, 68, 0.2)' }} onClick={() => { localStorage.removeItem('token'); setToken(null); }}>Log Out</button>
         </div>
@@ -32,7 +38,7 @@ function Layout({ token, setToken }) {
       
       <div style={{ flex: 1, overflowY: 'auto', background: 'var(--background)' }}>
         <Routes>
-          <Route path="/" element={<DashboardView />} />
+          <Route path="/" element={<DashboardView profile={profile} />} />
           <Route path="/tasks" element={<TaskView />} />
           <Route path="/profile" element={<ProfileView setToken={setToken} />} />
         </Routes>
@@ -45,7 +51,7 @@ export default function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
 
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       {token ? (
         <Layout token={token} setToken={setToken} />
       ) : (

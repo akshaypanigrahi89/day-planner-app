@@ -12,6 +12,11 @@ class User(Base):
     full_name = Column(String, default="DayPlanner User")
     profession = Column(String, default="Professional")
     location = Column(String, default="Earth")
+    phone_no = Column(String, nullable=True)
+    otp_verified = Column(Boolean, default=False)
+    state = Column(String, nullable=True)
+    city = Column(String, nullable=True)
+    country = Column(String, nullable=True)
 
     tasks = relationship("Task", back_populates="owner")
 
