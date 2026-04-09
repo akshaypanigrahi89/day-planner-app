@@ -74,8 +74,8 @@ export default function Auth({ setToken }) {
 
           {(!otpStep || isLogin) && (
              <>
-               <input type="text" name="email" placeholder="User ID" defaultValue="user@123" required style={{ margin: 0 }} />
-               <input type="password" name="password" placeholder="Password" defaultValue="1234" required style={{ margin: 0 }} />
+               <input type="text" name="email" placeholder="User ID" required style={{ margin: 0 }} />
+               <input type="password" name="password" placeholder="Password" required style={{ margin: 0 }} />
              </>
           )}
 
