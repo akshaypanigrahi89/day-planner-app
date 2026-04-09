@@ -4,6 +4,7 @@ import Auth from './components/Auth';
 import DashboardView from './components/DashboardView';
 import TaskView from './components/TaskView';
 import ProfileView from './components/ProfileView';
+import RefreshView from './components/RefreshView';
 import api from './api';
 
 function Layout({ token, setToken }) {
@@ -19,10 +20,11 @@ function Layout({ token, setToken }) {
     <div className="app-container" style={{ flexDirection: 'column' }}>
       <nav className="glass-panel" style={{ borderRadius: 0, padding: '1rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--surface-border)', zIndex: 10, background: 'white' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '3rem' }}>
-          <h2 style={{ color: 'var(--primary)', margin: 0, fontSize: '1.4rem' }}>DayPlanner ✨</h2>
+          <h2 style={{ color: 'var(--primary)', margin: 0, fontSize: '1.4rem', fontWeight: 800 }}>Aion DayPlanner ✨</h2>
           <div style={{ display: 'flex', gap: '2rem' }}>
             <Link to="/" style={{ textDecoration: 'none', color: isActive('/') ? 'var(--primary)' : 'var(--text-muted)', fontWeight: isActive('/') ? 700 : 500, transition: 'var(--transition)' }}>Dashboard</Link>
             <Link to="/tasks" style={{ textDecoration: 'none', color: isActive('/tasks') ? 'var(--primary)' : 'var(--text-muted)', fontWeight: isActive('/tasks') ? 700 : 500, transition: 'var(--transition)' }}>Tasks Planner</Link>
+            <Link to="/refresh" style={{ textDecoration: 'none', color: isActive('/refresh') ? 'var(--primary)' : 'var(--text-muted)', fontWeight: isActive('/refresh') ? 700 : 500, transition: 'var(--transition)' }}>Refresh Zone</Link>
           </div>
         </div>
 
@@ -36,12 +38,18 @@ function Layout({ token, setToken }) {
         </div>
       </nav>
       
-      <div style={{ flex: 1, overflowY: 'auto', background: 'var(--background)' }}>
-        <Routes>
-          <Route path="/" element={<DashboardView profile={profile} />} />
-          <Route path="/tasks" element={<TaskView />} />
-          <Route path="/profile" element={<ProfileView setToken={setToken} />} />
-        </Routes>
+      <div style={{ flex: 1, overflowY: 'auto', background: 'var(--background)', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ flex: 1 }}>
+          <Routes>
+            <Route path="/" element={<DashboardView profile={profile} />} />
+            <Route path="/tasks" element={<TaskView />} />
+            <Route path="/profile" element={<ProfileView setToken={setToken} />} />
+            <Route path="/refresh" element={<RefreshView />} />
+          </Routes>
+        </div>
+        <footer style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem', borderTop: '1px solid rgba(0,0,0,0.05)', background: 'white', marginTop: 'auto' }}>
+          &copy; {new Date().getFullYear()} Aion DayPlanner. Enhance your productivity and focus.
+        </footer>
       </div>
     </div>
   );

@@ -130,16 +130,16 @@ export default function DashboardView({ profile }) {
                   </motion.div>
               </div>
 
-              <motion.div whileHover={{ translateY: -5, scale: 1.02, boxShadow: '0 20px 40px rgba(56,189,248,0.1)' }} className="glass-panel" style={{ padding: '1.5rem', background: 'linear-gradient(135deg, rgba(56,189,248,0.03), rgba(59,130,246,0.03))', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
-                <button onClick={requestNotification} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)' }} title="Send Hydration Reminder"><Bell size={18} /></button>
-                <h3 style={{ color: 'var(--primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><GlassWater color="var(--primary)" size={20} /> Water Tracker</h3>
-                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  {[...Array(8)].map((_, i) => (<motion.div key={i} animate={{ scale: i < water ? 1.15 : 1 }} style={{ color: i < water ? 'var(--primary)' : 'var(--surface-border)' }}><GlassWater fill={i < water ? 'rgba(79, 70, 229, 0.2)' : 'transparent'} stroke={i < water ? 'var(--primary)' : 'var(--surface-border)'} strokeWidth={2} size={30} /></motion.div>))}
+              <motion.div whileHover={{ translateY: -5, scale: 1.02, boxShadow: '0 20px 40px rgba(56,189,248,0.15)' }} className="glass-panel" style={{ padding: '1.5rem', background: 'linear-gradient(135deg, rgba(56,189,248,0.05), rgba(59,130,246,0.05))', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', overflow: 'hidden' }}>
+                <button onClick={requestNotification} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'white', border: '1px solid var(--surface-border)', borderRadius: '50%', padding: '0.5rem', cursor: 'pointer', color: 'var(--primary)', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' }} title="Send Hydration Reminder"><Bell size={16} /></button>
+                <h3 style={{ color: 'var(--primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 800 }}><GlassWater color="var(--primary)" size={20} /> Water Tracker</h3>
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', width: '100%', padding: '0 0.5rem' }}>
+                  {[...Array(8)].map((_, i) => (<motion.div key={i} animate={{ scale: i < water ? 1.15 : 1, y: i < water ? -2 : 0 }} style={{ color: i < water ? 'var(--primary)' : '#cbd5e1', filter: i < water ? 'drop-shadow(0 4px 6px rgba(79, 70, 229, 0.3))' : 'none', flexShrink: 0 }}><GlassWater fill={i < water ? 'rgba(79, 70, 229, 0.4)' : 'transparent'} stroke={i < water ? 'var(--primary)' : '#94a3b8'} strokeWidth={2.5} size={26} /></motion.div>))}
                 </div>
-                <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-                  <button className="btn-secondary" onClick={() => setWater(Math.max(0, water - 1))} style={{ padding: '0.5rem', borderRadius: '50%' }}><Minus size={16}/></button>
-                  <span style={{ fontWeight: 800, fontSize: '1.2rem', display: 'flex', alignItems: 'center' }}>{water}/8</span>
-                  <button className="btn-primary" onClick={() => { setWater(Math.min(8, water + 1)); if(water<8) requestNotification(); }} style={{ padding: '0.5rem', borderRadius: '50%' }}><Plus size={16}/></button>
+                <div style={{ display: 'flex', gap: '1.5rem', marginTop: '1.5rem', alignItems: 'center' }}>
+                  <motion.button whileTap={{ scale: 0.9 }} className="btn-secondary" onClick={() => setWater(Math.max(0, water - 1))} style={{ padding: '0.6rem', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Minus size={18}/></motion.button>
+                  <span style={{ fontWeight: 800, fontSize: '1.4rem', display: 'flex', alignItems: 'center', color: 'var(--text-main)' }}>{water} <span style={{ fontSize: '1rem', color: 'var(--text-muted)', marginLeft: '4px', fontWeight: 600 }}>/ 8</span></span>
+                  <motion.button whileTap={{ scale: 0.9 }} className="btn-primary" onClick={() => { setWater(Math.min(8, water + 1)); if(water<8) requestNotification(); }} style={{ padding: '0.6rem', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(79,70,229,0.3)' }}><Plus size={18}/></motion.button>
                 </div>
               </motion.div>
             </div>

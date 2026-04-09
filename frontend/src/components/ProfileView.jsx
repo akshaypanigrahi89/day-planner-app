@@ -85,7 +85,7 @@ export default function ProfileView({ setToken }) {
            </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '2.5rem' }}>
-          <button type="submit" className="btn-primary" style={{ padding: '0.8rem 2rem', fontSize: '1rem' }}>Save Metadata</button>
+          <button type="submit" className="btn-primary" style={{ padding: '0.8rem 2rem', fontSize: '1rem' }}>Save</button>
           {saveStatus && <span style={{ color: saveStatus.includes('Failed') ? 'var(--danger)' : 'var(--success)', fontWeight: 600 }}>{saveStatus}</span>}
         </div>
       </form>
