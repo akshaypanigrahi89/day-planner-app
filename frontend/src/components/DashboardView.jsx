@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api';
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
-import { Droplet, Plus, Minus, Bell, Star } from 'lucide-react';
+import { Droplet, Plus, Minus, Bell, Star, GlassWater } from 'lucide-react';
 
 export default function DashboardView({ profile }) {
   const [tasks, setTasks] = useState([]);
@@ -101,7 +101,7 @@ export default function DashboardView({ profile }) {
         {/* RIGHT SIDE: Everything Else */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(200px, 1fr) 2fr 1.5fr', gap: '2rem' }}>
-              <motion.div whileHover={{ translateY: -5 }} className="glass-panel" style={{ padding: '2rem', background: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+              <motion.div whileHover={{ translateY: -5, scale: 1.02, boxShadow: '0 20px 40px rgba(0,0,0,0.05)' }} className="glass-panel" style={{ padding: '2rem', background: 'linear-gradient(135deg, rgba(245,158,11,0.03), rgba(79,70,229,0.03))', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                 <h3 style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontWeight: 500 }}>Completion Rate</h3>
                 <div style={{ fontSize: '3.5rem', fontWeight: 800, background: 'linear-gradient(135deg, var(--secondary), var(--primary))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                   {completionRate}%
@@ -110,31 +110,31 @@ export default function DashboardView({ profile }) {
               </motion.div>
               
               <div style={{ display: 'grid', gridTemplateRows: '1fr 1fr 1fr', gap: '1rem' }}>
-                  <motion.div whileHover={{ translateY: -2 }} className="glass-panel" style={{ padding: '1.5rem', background: 'white', display: 'flex', flexDirection: 'column' }}>
+                  <motion.div whileHover={{ translateY: -3, scale: 1.01, boxShadow: '0 10px 25px rgba(16,185,129,0.1)' }} className="glass-panel" style={{ padding: '1.5rem', background: 'linear-gradient(135deg, rgba(16,185,129,0.03), rgba(20,184,166,0.03))', display: 'flex', flexDirection: 'column' }}>
                     <h3 style={{ color: 'var(--primary)', marginBottom: '0.5rem', fontSize: '1rem' }}>Daily Summary Review</h3>
-                    <textarea placeholder="Write a summary..." defaultValue={localStorage.getItem('daily_summary')} onChange={(e) => localStorage.setItem('daily_summary', e.target.value)} style={{ padding: '0.8rem', border: 'none', background: 'var(--background)', borderRadius: '8px', resize: 'vertical', minHeight: '40px', fontSize: '0.85rem', width: '100%', color: 'var(--text-main)', fontFamily: 'inherit' }} />
+                    <textarea placeholder="Write a summary..." defaultValue={localStorage.getItem('daily_summary')} onChange={(e) => localStorage.setItem('daily_summary', e.target.value)} style={{ padding: '0.8rem', border: 'none', background: 'rgba(255,255,255,0.7)', borderRadius: '8px', resize: 'vertical', minHeight: '40px', fontSize: '0.85rem', width: '100%', color: 'var(--text-main)', fontFamily: 'inherit' }} />
                   </motion.div>
-                  <motion.div whileHover={{ translateY: -2 }} className="glass-panel" style={{ padding: '1.5rem', background: 'white', display: 'flex', flexDirection: 'column' }}>
+                  <motion.div whileHover={{ translateY: -3, scale: 1.01, boxShadow: '0 10px 25px rgba(239,68,68,0.1)' }} className="glass-panel" style={{ padding: '1.5rem', background: 'linear-gradient(135deg, rgba(239,68,68,0.03), rgba(249,115,22,0.03))', display: 'flex', flexDirection: 'column' }}>
                     <h3 style={{ color: 'var(--danger)', marginBottom: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem' }}><Star size={16} fill="var(--danger)"/> Priorities ({topPriorities.length})</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', overflowY: 'auto', maxHeight: '100px' }}>
                       {topPriorities.length === 0 ? <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>No high-priority tasks pending!</span> : topPriorities.map(t => (
-                         <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem', background: 'var(--background)', borderRadius: '4px' }}>
+                         <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem', background: 'rgba(255,255,255,0.7)', borderRadius: '4px' }}>
                            <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{t.title}</span><span style={{ color: 'var(--primary)', fontSize: '0.8rem' }}>{t.status}</span>
                          </div>
                       ))}
                     </div>
                   </motion.div>
-                  <motion.div whileHover={{ translateY: -2 }} className="glass-panel" style={{ padding: '1.5rem', background: 'white', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <motion.div whileHover={{ translateY: -3, scale: 1.01, boxShadow: '0 10px 25px rgba(139,92,246,0.1)' }} className="glass-panel" style={{ padding: '1.5rem', background: 'linear-gradient(135deg, rgba(139,92,246,0.03), rgba(168,85,247,0.03))', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                     <h3 style={{ color: 'var(--primary)', marginBottom: '0.5rem', fontSize: '1rem' }}>Today's Goal Focus</h3>
-                    <input type="text" placeholder="Most important goal?" defaultValue={localStorage.getItem('today_goal')} onChange={(e) => localStorage.setItem('today_goal', e.target.value)} style={{ padding: '0.8rem', border: 'none', background: 'var(--background)', borderRadius: '8px', fontWeight: 500, color: 'var(--text-main)', width: '100%' }} />
+                    <input type="text" placeholder="Most important goal?" defaultValue={localStorage.getItem('today_goal')} onChange={(e) => localStorage.setItem('today_goal', e.target.value)} style={{ padding: '0.8rem', border: 'none', background: 'rgba(255,255,255,0.7)', borderRadius: '8px', fontWeight: 500, color: 'var(--text-main)', width: '100%' }} />
                   </motion.div>
               </div>
 
-              <motion.div whileHover={{ translateY: -5 }} className="glass-panel" style={{ padding: '1.5rem', background: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
+              <motion.div whileHover={{ translateY: -5, scale: 1.02, boxShadow: '0 20px 40px rgba(56,189,248,0.1)' }} className="glass-panel" style={{ padding: '1.5rem', background: 'linear-gradient(135deg, rgba(56,189,248,0.03), rgba(59,130,246,0.03))', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
                 <button onClick={requestNotification} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)' }} title="Send Hydration Reminder"><Bell size={18} /></button>
-                <h3 style={{ color: 'var(--primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Droplet fill="var(--primary)" size={20} /> Water Tracker</h3>
+                <h3 style={{ color: 'var(--primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><GlassWater color="var(--primary)" size={20} /> Water Tracker</h3>
                 <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                  {[...Array(8)].map((_, i) => (<motion.div key={i} animate={{ scale: i < water ? 1.1 : 1 }} style={{ color: i < water ? 'var(--primary)' : 'var(--surface-border)' }}><Droplet fill={i < water ? 'var(--primary)' : 'none'} size={28} /></motion.div>))}
+                  {[...Array(8)].map((_, i) => (<motion.div key={i} animate={{ scale: i < water ? 1.15 : 1 }} style={{ color: i < water ? 'var(--primary)' : 'var(--surface-border)' }}><GlassWater fill={i < water ? 'rgba(79, 70, 229, 0.2)' : 'transparent'} stroke={i < water ? 'var(--primary)' : 'var(--surface-border)'} strokeWidth={2} size={30} /></motion.div>))}
                 </div>
                 <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
                   <button className="btn-secondary" onClick={() => setWater(Math.max(0, water - 1))} style={{ padding: '0.5rem', borderRadius: '50%' }}><Minus size={16}/></button>
@@ -145,12 +145,12 @@ export default function DashboardView({ profile }) {
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', flex: 1 }}>
-              <motion.div className="glass-panel" style={{ padding: '1.5rem', background: 'white' }}>
+              <motion.div whileHover={{ scale: 1.02, boxShadow: '0 20px 40px rgba(0,0,0,0.05)' }} className="glass-panel" style={{ padding: '1.5rem', background: 'linear-gradient(145deg, #ffffff, #f8fafc)' }}>
                 <h4 style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--text-muted)' }}>Progress Pipeline</h4>
                 <ResponsiveContainer width="100%" height={250}><PieChart><Pie data={pieData} dataKey="value" cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={5}>{pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}</Pie><RechartsTooltip /><Legend verticalAlign="bottom" height={24}/></PieChart></ResponsiveContainer>
               </motion.div>
 
-              <motion.div className="glass-panel" style={{ padding: '1.5rem', background: 'white' }}>
+              <motion.div whileHover={{ scale: 1.02, boxShadow: '0 20px 40px rgba(0,0,0,0.05)' }} className="glass-panel" style={{ padding: '1.5rem', background: 'linear-gradient(145deg, #ffffff, #f8fafc)' }}>
                 <h4 style={{ textAlign: 'center', marginBottom: '1rem', color: 'var(--text-muted)' }}>Categories Breakdown</h4>
                 <ResponsiveContainer width="100%" height={250}><BarChart data={barData}><CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} /><XAxis dataKey="name" axisLine={false} tickLine={false} /><YAxis axisLine={false} tickLine={false} /><RechartsTooltip cursor={{ fill: 'transparent' }}/><Legend verticalAlign="bottom" height={24}/><Bar dataKey="pending" stackId="a" fill="#f59e0b" radius={[0, 0, 4, 4]} /><Bar dataKey="done" stackId="a" fill="#10b981" radius={[4, 4, 0, 0]} /></BarChart></ResponsiveContainer>
               </motion.div>
