@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
 import Auth from './components/Auth';
 import DashboardView from './components/DashboardView';
 import TaskView from './components/TaskView';
@@ -51,7 +51,7 @@ export default function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
 
   return (
-    <BrowserRouter basename={import.meta.env.BASE_URL}>
+    <HashRouter>
       {token ? (
         <Layout token={token} setToken={setToken} />
       ) : (
@@ -59,6 +59,6 @@ export default function App() {
           <Route path="*" element={<Auth setToken={setToken} />} />
         </Routes>
       )}
-    </BrowserRouter>
+    </HashRouter>
   );
 }
