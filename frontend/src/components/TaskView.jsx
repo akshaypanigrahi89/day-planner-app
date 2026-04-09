@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import api from '../api';
-import { Check, X, Play, Square } from 'lucide-react';
+import { Check, X, Play, Square, LayoutGrid, List } from 'lucide-react';
 
 const emptyTask = () => {
   const d = new Date();
@@ -15,6 +15,7 @@ export default function TaskView() {
   const [tasks, setTasks] = useState([]);
   const [newTasks, setNewTasks] = useState([emptyTask()]);
   const [editingTask, setEditingTask] = useState(null);
+  const [activeTab, setActiveTab] = useState('kanban');
   
   // Custom Feature: Global Pomodoro Timer
   const [timer, setTimer] = useState(0);
@@ -77,8 +78,17 @@ export default function TaskView() {
         <motion.button whileHover={{ scale:1.05 }} onClick={()=>api.post('/tasks/review',{date:new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]}).then(()=>{alert('Archived!'); fetchTasks();})} className="btn-primary" style={{ backgroundColor:'var(--text-main)', border:'none' }}>End-Day Review</motion.button>
       </div>
 
-      {/* EXACT EXCEL SHEET MAPPING AS REQUESTED */}
-      <div className="glass-panel" style={{ padding:'1.5rem', background:'white', overflowX:'auto' }}>
+        <div style={{ display: 'flex', gap: '1rem', background: 'var(--background)', padding: '0.4rem', borderRadius: '12px', alignSelf: 'flex-start' }}>
+          <button onClick={() => setActiveTab('kanban')} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: activeTab === 'kanban' ? 'white' : 'transparent', color: activeTab === 'kanban' ? 'var(--primary)' : 'var(--text-muted)', border: 'none', padding: '0.6rem 1.2rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, boxShadow: activeTab === 'kanban' ? '0 2px 5px rgba(0,0,0,0.05)' : 'none' }}>
+             <LayoutGrid size={18} /> Kanban Board
+          </button>
+          <button onClick={() => setActiveTab('table')} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: activeTab === 'table' ? 'white' : 'transparent', color: activeTab === 'table' ? 'var(--primary)' : 'var(--text-muted)', border: 'none', padding: '0.6rem 1.2rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, boxShadow: activeTab === 'table' ? '0 2px 5px rgba(0,0,0,0.05)' : 'none' }}>
+             <List size={18} /> Table View
+          </button>
+        </div>
+
+      {activeTab === 'table' && (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-panel" style={{ padding:'1.5rem', background:'white', overflowX:'auto' }}>
         <h4 style={{ marginBottom:'1rem', color:'var(--text-muted)' }}>Excel Matrix Sync</h4>
         <table style={{ width:'100%', borderCollapse:'collapse', textAlign:'left', minWidth:'1100px' }}>
           <thead>
@@ -126,54 +136,66 @@ export default function TaskView() {
         </table>
         
         <div style={{ display:'flex', gap:'1rem', marginTop:'1.5rem' }}>
-          <button className="btn-secondary" onClick={()=>setNewTasks([...newTasks, emptyTask()])} style={{ background:'var(--background)' }}>+ Expand Excel Sheet</button>
+          <button className="btn-secondary" onClick={()=>setNewTasks([...newTasks, emptyTask()])} style={{ background:'var(--background)' }}>+ Add Row</button>
           <button className="btn-primary" onClick={syncSheet}>Sync to Todo Kanban</button>
         </div>
-      </div>
+      </motion.div>
+      )}
 
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:'1.5rem', flex:1 }}>
-        <div className="kanban-column" onDragOver={e=>e.preventDefault()} onDrop={e=>handleDrop(e, 'Todo')}>
-          <h3 style={{ color:'var(--warning)', borderBottom:'2px solid rgba(245,158,11,0.2)', paddingBottom:'0.5rem', marginBottom:'1rem' }}>Todo <span style={{ opacity:0.5, fontSize:'0.8em', float:'right' }}>{todoTasks.length}</span></h3>
-          {todoTasks.map(t => (
-            <motion.div key={t.id} variants={getCardVariant} initial="hidden" animate="visible" whileHover={{ y:-4, boxShadow:'0 10px 20px rgba(0,0,0,0.06)' }} className="task-item" draggable onDragStart={e => e.dataTransfer.setData('taskId', t.id)} onClick={() => setEditingTask(t)} style={{ display:'flex', flexDirection:'column', gap:'0.5rem', cursor:'grab' }}>
-              <div style={{ display:'flex', justifyContent:'space-between', width:'100%' }}><strong style={{ color:'var(--text-main)' }}>{t.title}</strong></div>
-              <div style={{ display:'flex', gap:'0.5rem', justifyContent:'space-between', alignItems:'center' }}>
-                <span style={{ fontSize:'0.75rem', padding:'0.2rem 0.5rem', background:'var(--background)', color:'var(--text-muted)' }}>{t.category||'General'}</span>
-                <span style={{ fontSize:'0.75rem', color:'var(--text-muted)' }}>{t.progress}%</span>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        <div className="kanban-column" onDragOver={e=>e.preventDefault()} onDrop={e=>handleDrop(e, 'Doing')}>
-          <h3 style={{ color:'var(--primary)', borderBottom:'2px solid rgba(79,70,229,0.2)', paddingBottom:'0.5rem', marginBottom:'1rem' }}>Doing <span style={{ opacity:0.5, fontSize:'0.8em', float:'right' }}>{doingTasks.length}</span></h3>
-          {doingTasks.map(t => (
-            <motion.div key={t.id} variants={getCardVariant} initial="hidden" animate="visible" whileHover={{ y:-4, boxShadow:'0 10px 20px rgba(0,0,0,0.06)' }} className="task-item" draggable onDragStart={e => e.dataTransfer.setData('taskId', t.id)} onClick={() => setEditingTask(t)} style={{ display:'flex', flexDirection:'column', gap:'0.5rem', borderLeft:'4px solid var(--primary)', cursor:'grab' }}>
-              <div style={{ display:'flex', justifyContent:'space-between', width:'100%' }}><strong style={{ color:'var(--text-main)' }}>{t.title}</strong></div>
-              <div style={{ display:'flex', gap:'0.5rem', width:'100%', justifyContent:'space-between', alignItems:'center' }}>
-                <span style={{ fontSize:'0.75rem', padding:'0.2rem 0.5rem', background:'var(--background)', color:'var(--text-muted)' }}>{t.category||'General'}</span>
-                <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', width:'100%', paddingLeft:'1rem' }}>
-                   <span style={{ fontSize:'0.7rem', color:'var(--primary)', fontWeight:600 }}>{t.progress}%</span>
-                   <div style={{ width:'100%', background:'var(--surface-border)', height:'4px', borderRadius:'2px', overflow:'hidden' }}><div style={{ width:`${t.progress}%`, background:'var(--primary)', height:'100%' }} /></div>
+      {activeTab === 'kanban' && (
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(3, 1fr)', gap:'1.5rem', flex:1, opacity: activeTab === 'kanban' ? 1 : 0, pointerEvents: activeTab === 'kanban' ? 'auto' : 'none' }}>
+        <div style={{ background:'transparent', padding:'0' }} onDragOver={e=>e.preventDefault()} onDrop={e=>handleDrop(e, 'Todo')}>
+          <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.8rem', color:'var(--text-main)', fontSize: '1rem', fontWeight: 600, paddingBottom:'1rem', marginBottom:'0.5rem' }}>New task <span style={{ background: 'var(--surface-border)', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{todoTasks.length}</span></h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {todoTasks.map(t => (
+              <motion.div key={t.id} variants={getCardVariant} initial="hidden" animate="visible" whileHover={{ y:-4, boxShadow:'0 10px 20px rgba(0,0,0,0.06)' }} draggable onDragStart={e => e.dataTransfer.setData('taskId', t.id)} onClick={() => setEditingTask(t)} style={{ background: '#e0f2fe', borderRadius: '12px', padding: '1.2rem', display:'flex', flexDirection:'column', gap:'0.8rem', cursor:'grab', borderLeft: '5px solid #38bdf8' }}>
+                <div style={{ display:'flex', justifyContent:'space-between', width:'100%' }}><strong style={{ color:'#0c4a6e', fontSize: '1.05rem' }}>{t.title}</strong></div>
+                <div style={{ display:'flex', gap:'0.5rem', justifyContent:'space-between', alignItems:'center' }}>
+                  <span style={{ fontSize:'0.75rem', padding:'0.3rem 0.6rem', background:'rgba(255,255,255,0.6)', color:'#0c4a6e', borderRadius: '4px', fontWeight: 600 }}>{t.category||'General'}</span>
+                  <span style={{ fontSize:'0.8rem', color:'#0ea5e9', display: 'flex', alignItems: 'center', gap: '0.2rem' }}><Check size={14}/> {t.progress}%</span>
                 </div>
-              </div>
-            </motion.div>
-          ))}
+              </motion.div>
+            ))}
+          </div>
         </div>
 
-        <div className="kanban-column" onDragOver={e=>e.preventDefault()} onDrop={e=>handleDrop(e, 'Done')}>
-          <h3 style={{ color:'var(--success)', borderBottom:'2px solid rgba(16,185,129,0.2)', paddingBottom:'0.5rem', marginBottom:'1rem' }}>Done <span style={{ opacity:0.5, fontSize:'0.8em', float:'right' }}>{doneTasks.length}</span></h3>
-          {doneTasks.map(t => (
-            <motion.div key={t.id} variants={getCardVariant} initial="hidden" animate="visible" whileHover={{ y:-4, boxShadow:'0 10px 20px rgba(0,0,0,0.06)' }} className="task-item" draggable onDragStart={e => e.dataTransfer.setData('taskId', t.id)} onClick={() => setEditingTask(t)} style={{ opacity: 0.6, display:'flex', gap:'1rem', alignItems:'center', cursor:'grab' }}>
-              <div style={{ background:'var(--success)', borderRadius:'50%', padding:'0.2rem', color:'white', alignSelf:'flex-start', marginTop:'0.2rem' }}><Check size={14} strokeWidth={3} /></div>
-              <div style={{ display:'flex', flexDirection:'column' }}>
-                <strong style={{ fontSize:'1.1rem', textDecoration:'line-through', color:'var(--text-muted)' }}>{t.title}</strong>
-                <span style={{ fontSize:'0.8rem', color:'var(--text-muted)' }}>{t.comment}</span>
-              </div>
-            </motion.div>
-          ))}
+        <div style={{ background:'transparent', padding:'0' }} onDragOver={e=>e.preventDefault()} onDrop={e=>handleDrop(e, 'Doing')}>
+          <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.8rem', color:'var(--text-main)', fontSize: '1rem', fontWeight: 600, paddingBottom:'1rem', marginBottom:'0.5rem' }}>In progress <span style={{ background: 'var(--surface-border)', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{doingTasks.length}</span></h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {doingTasks.map(t => (
+              <motion.div key={t.id} variants={getCardVariant} initial="hidden" animate="visible" whileHover={{ y:-4, boxShadow:'0 10px 20px rgba(0,0,0,0.06)' }} draggable onDragStart={e => e.dataTransfer.setData('taskId', t.id)} onClick={() => setEditingTask(t)} style={{ background: '#fee2e2', borderRadius: '12px', padding: '1.2rem', display:'flex', flexDirection:'column', gap:'0.8rem', cursor:'grab', borderLeft: '5px solid #f87171' }}>
+                <div style={{ display:'flex', justifyContent:'space-between', width:'100%' }}><strong style={{ color:'#7f1d1d', fontSize: '1.05rem' }}>{t.title}</strong></div>
+                <div style={{ display:'flex', gap:'0.5rem', width:'100%', justifyContent:'space-between', alignItems:'center' }}>
+                  <span style={{ fontSize:'0.75rem', padding:'0.3rem 0.6rem', background:'rgba(255,255,255,0.6)', color:'#7f1d1d', borderRadius: '4px', fontWeight: 600 }}>{t.category||'General'}</span>
+                  <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', width:'100%', paddingLeft:'1rem' }}>
+                     <span style={{ fontSize:'0.75rem', color:'#ef4444', fontWeight:600 }}>{t.progress}%</span>
+                     <div style={{ width:'100%', background:'rgba(255,255,255,0.6)', height:'6px', borderRadius:'3px', overflow:'hidden', marginTop: '0.2rem' }}><div style={{ width:`${t.progress}%`, background:'#ef4444', height:'100%' }} /></div>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ background:'transparent', padding:'0' }} onDragOver={e=>e.preventDefault()} onDrop={e=>handleDrop(e, 'Done')}>
+          <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.8rem', color:'var(--text-main)', fontSize: '1rem', fontWeight: 600, paddingBottom:'1rem', marginBottom:'0.5rem' }}>Completed <span style={{ background: 'var(--surface-border)', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{doneTasks.length}</span></h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {doneTasks.map(t => (
+              <motion.div key={t.id} variants={getCardVariant} initial="hidden" animate="visible" whileHover={{ y:-4, boxShadow:'0 10px 20px rgba(0,0,0,0.06)' }} draggable onDragStart={e => e.dataTransfer.setData('taskId', t.id)} onClick={() => setEditingTask(t)} style={{ background: '#f8fafc', borderRadius: '12px', padding: '1.2rem', display:'flex', flexDirection:'column', gap:'0.8rem', cursor:'grab', borderLeft: '5px solid #94a3b8', border: '1px solid #e2e8f0', opacity: 0.8 }}>
+                <div style={{ display:'flex', justifyContent:'space-between', width:'100%' }}>
+                  <strong style={{ color:'#475569', fontSize: '1.05rem', textDecoration: 'line-through' }}>{t.title}</strong>
+                  <div style={{ background:'#cbd5e1', borderRadius:'50%', padding:'0.2rem', color:'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Check size={14} strokeWidth={3} /></div>
+                </div>
+                <div style={{ display:'flex', gap:'0.5rem', justifyContent:'space-between', alignItems:'center' }}>
+                  <span style={{ fontSize:'0.75rem', padding:'0.3rem 0.6rem', background:'white', color:'#475569', borderRadius: '4px', fontWeight: 600 }}>{t.category||'General'}</span>
+                  <span style={{ fontSize:'0.8rem', color:'#94a3b8', display: 'flex', alignItems: 'center', gap: '0.2rem' }}><Check size={14}/> {t.progress}%</span>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </div>
+      )}
 
       {editingTask && (
         <div className="modal-overlay" style={{ zIndex: 9999 }}>

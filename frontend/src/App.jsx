@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
 import Auth from './components/Auth';
 import DashboardView from './components/DashboardView';
+import DailyPlannerView from './components/DailyPlannerView';
 import TaskView from './components/TaskView';
 import ProfileView from './components/ProfileView';
 import RefreshView from './components/RefreshView';
@@ -23,7 +24,8 @@ function Layout({ token, setToken }) {
           <h2 style={{ color: 'var(--primary)', margin: 0, fontSize: '1.4rem', fontWeight: 800 }}>Aion DayPlanner ✨</h2>
           <div style={{ display: 'flex', gap: '2rem' }}>
             <Link to="/" style={{ textDecoration: 'none', color: isActive('/') ? 'var(--primary)' : 'var(--text-muted)', fontWeight: isActive('/') ? 700 : 500, transition: 'var(--transition)' }}>Dashboard</Link>
-            <Link to="/tasks" style={{ textDecoration: 'none', color: isActive('/tasks') ? 'var(--primary)' : 'var(--text-muted)', fontWeight: isActive('/tasks') ? 700 : 500, transition: 'var(--transition)' }}>Tasks Planner</Link>
+            <Link to="/planner" style={{ textDecoration: 'none', color: isActive('/planner') ? 'var(--primary)' : 'var(--text-muted)', fontWeight: isActive('/planner') ? 700 : 500, transition: 'var(--transition)' }}>Daily Planner</Link>
+            <Link to="/tasks" style={{ textDecoration: 'none', color: isActive('/tasks') ? 'var(--primary)' : 'var(--text-muted)', fontWeight: isActive('/tasks') ? 700 : 500, transition: 'var(--transition)' }}>Task Board</Link>
             <Link to="/refresh" style={{ textDecoration: 'none', color: isActive('/refresh') ? 'var(--primary)' : 'var(--text-muted)', fontWeight: isActive('/refresh') ? 700 : 500, transition: 'var(--transition)' }}>Refresh Zone</Link>
           </div>
         </div>
@@ -42,13 +44,19 @@ function Layout({ token, setToken }) {
         <div style={{ flex: 1 }}>
           <Routes>
             <Route path="/" element={<DashboardView profile={profile} />} />
+            <Route path="/planner" element={<DailyPlannerView profile={profile} />} />
             <Route path="/tasks" element={<TaskView />} />
             <Route path="/profile" element={<ProfileView setToken={setToken} />} />
             <Route path="/refresh" element={<RefreshView />} />
           </Routes>
         </div>
-        <footer style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem', borderTop: '1px solid rgba(0,0,0,0.05)', background: 'white', marginTop: 'auto' }}>
-          &copy; {new Date().getFullYear()} Aion DayPlanner. Enhance your productivity and focus.
+        <footer style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem', borderTop: '1px solid rgba(0,0,0,0.05)', background: 'white', marginTop: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+          <div>&copy; {new Date().getFullYear()} Aion DayPlanner. Enhance your productivity and focus.</div>
+          <div style={{ display: 'flex', gap: '1.5rem', fontWeight: 600 }}>
+            <a href="#" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>GitHub</a>
+            <a href="#" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>Twitter</a>
+            <a href="#" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>LinkedIn</a>
+          </div>
         </footer>
       </div>
     </div>
