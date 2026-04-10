@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Chess } from 'chess.js';
 import { Chessboard } from 'react-chessboard';
+import sudoku from 'sudoku';
 
 export default function RefreshView() {
   const [activeTab, setActiveTab] = useState(0);
@@ -13,25 +14,26 @@ export default function RefreshView() {
     { title: "Reaction Test", id: 3 },
     { title: "Memory Match", id: 4 },
     { title: "Chess", id: 5 },
-    { title: "Card Game", id: 6 },
+    { title: "Lucky Cards", id: 6 },
     { title: "Sudoku", id: 7 },
     { title: "Quick Ludo", id: 8 },
+    { title: "Snake", id: 9 },
   ];
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ padding: '2rem 4rem', display: 'flex', flexDirection: 'column', gap: '2rem', height: '100%', background: 'transparent' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ fontSize: '2rem', fontWeight: 800, color: 'var(--text-main)' }}>Refresh <span style={{ color: 'var(--primary)' }}>Zone</span></h2>
-        <div style={{ display: 'flex', gap: '0.5rem', background: 'var(--surface)', padding: '0.5rem', borderRadius: '12px', boxShadow: '0 4px 15px rgba(0,0,0,0.2)' }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ padding: '1rem 2rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', height: '100%', background: 'transparent', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-main)' }}>Refresh <span style={{ color: 'var(--primary)' }}>Zone</span></h2>
+        <div style={{ display: 'flex', gap: '0.4rem', background: 'var(--surface)', padding: '0.4rem', borderRadius: '14px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', flexWrap: 'wrap', justifyContent: 'center' }}>
           {tabs.map((tab, i) => (
-             <button key={i} onClick={() => setActiveTab(i)} style={{ border: 'none', background: activeTab === i ? 'var(--primary)' : 'transparent', color: activeTab === i ? 'white' : 'var(--text-muted)', padding: '0.6rem 1.2rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s' }}>{tab.title}</button>
+             <button key={i} onClick={() => setActiveTab(i)} style={{ border: 'none', background: activeTab === i ? 'var(--primary)' : 'transparent', color: activeTab === i ? 'white' : 'var(--text-muted)', padding: '0.5rem 1rem', borderRadius: '10px', cursor: 'pointer', fontWeight: 600, transition: 'all 0.2s', fontSize: '0.85rem' }}>{tab.title}</button>
           ))}
         </div>
       </div>
 
-      <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
+      <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative', overflowY: 'auto', paddingBottom: '2rem' }}>
           <AnimatePresence mode="wait">
-             <motion.div key={activeTab} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.2 }} style={{ width: '100%', maxWidth: '700px' }}>
+             <motion.div key={activeTab} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98 }} transition={{ duration: 0.2 }} style={{ width: '100%', maxWidth: '750px' }}>
                 {activeTab === 0 && <TicTacToeGame />}
                 {activeTab === 1 && <BreathingZone />}
                 {activeTab === 2 && <RPSGame />}
@@ -41,6 +43,7 @@ export default function RefreshView() {
                 {activeTab === 6 && <LuckyCardsGame />}
                 {activeTab === 7 && <SudokuGame />}
                 {activeTab === 8 && <QuickLudoGame />}
+                {activeTab === 9 && <SnakeGame />}
              </motion.div>
           </AnimatePresence>
       </div>
@@ -381,35 +384,70 @@ function LuckyCardsGame() {
 // 8. SUDOKU GAME
 // ---------------------------------------------------------
 function SudokuGame() {
-    const [board, setBoard] = useState(Array(81).fill(''));
-    
-    useEffect(() => {
-        const b = Array(81).fill('');
-        // generate some dummy puzzle details for visual flair
-        for(let i=0; i<25; i++) b[Math.floor(Math.random()*81)] = Math.floor(Math.random()*9)+1;
-        setBoard(b);
+    const [puzzle, setPuzzle] = useState([]);
+    const [userBoard, setUserBoard] = useState([]);
+    const [solution, setSolution] = useState([]);
+    const [status, setStatus] = useState('Fill the grid!');
+
+    const init = useCallback(() => {
+        const p = sudoku.makepuzzle();
+        const s = sudoku.solve(p);
+        setPuzzle(p);
+        setUserBoard(p.map(v => v !== null ? v + 1 : ''));
+        setSolution(s.map(v => v + 1));
+        setStatus('Ready to solve!');
     }, []);
+
+    useEffect(() => { init(); }, [init]);
+
+    const handleInput = (i, val) => {
+        if(puzzle[i] !== null) return;
+        const newBoard = [...userBoard];
+        if (val === '' || /^[1-9]$/.test(val)) {
+            newBoard[i] = val === '' ? '' : parseInt(val);
+            setUserBoard(newBoard);
+        }
+    };
+
+    const checkSolution = () => {
+        const isCorrect = userBoard.every((val, i) => val === solution[i]);
+        setStatus(isCorrect ? '✅ Perfect! Puzzle solved.' : '❌ Some numbers are incorrect. Keep trying!');
+    };
 
     return (
         <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem', width: '100%' }}>
-            <h3 style={{ color: 'var(--text-main)', fontSize: '1.5rem' }}>Sudoku Challenge</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(9, minmax(30px, 40px))', gap: '2px', background: 'var(--primary)', padding: '3px', borderRadius: '4px', border: '3px solid var(--primary)' }}>
-                {board.map((val, i) => {
-                    const isThickRight = (i % 9) === 2 || (i % 9) === 5;
-                    const isThickBottom = Math.floor(i / 9) === 2 || Math.floor(i / 9) === 5;
+            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+                <h3 style={{ color: 'var(--text-main)', fontSize: '1.2rem' }}>Sudoku Challenge</h3>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button className="btn-secondary" style={{ padding: '0.4rem 1rem' }} onClick={init}>New</button>
+                    <button className="btn-primary" style={{ padding: '0.4rem 1rem' }} onClick={checkSolution}>Check</button>
+                    <button className="btn-secondary" style={{ padding: '0.4rem 1rem' }} onClick={() => setUserBoard(solution)}>Solve</button>
+                </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(9, 40px)', gap: '1px', background: 'var(--primary)', padding: '2px', borderRadius: '4px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)' }}>
+                {userBoard.map((val, i) => {
+                    const r = Math.floor(i / 9);
+                    const c = i % 9;
+                    const isFixed = puzzle[i] !== null;
+                    const isCorrect = userBoard[i] !== '' && userBoard[i] === solution[i];
+                    
                     return (
-                        <input key={i} maxLength={1} defaultValue={val} style={{ 
-                            width: '100%', height: '40px', textAlign: 'center', fontSize: '1.2rem', 
-                            border: 'none', borderRadius: 0, margin: 0, backgroundColor: ((Math.floor((i%9)/3) + Math.floor((i/27))) % 2 === 0) ? '#ffffff' : '#f8fafc',
-                            fontWeight: val ? 'bold' : 'normal', color: val ? 'var(--primary)' : 'var(--text-main)',
-                            borderRight: isThickRight ? '2px solid var(--primary)' : 'none',
-                            borderBottom: isThickBottom ? '2px solid var(--primary)' : 'none',
-                            padding: 0
+                        <input key={i} maxLength={1} value={val} onChange={(e) => handleInput(i, e.target.value)}
+                         readOnly={isFixed}
+                         style={{ 
+                            width: '40px', height: '40px', textAlign: 'center', fontSize: '1.1rem', 
+                            border: 'none', borderRadius: 0, margin: 0, 
+                            backgroundColor: isFixed ? '#e2e8f0' : ( (Math.floor(r/3) + Math.floor(c/3)) % 2 === 0 ? '#ffffff' : '#f8fafc' ),
+                            fontWeight: isFixed ? 'bold' : 'normal',
+                            color: isFixed ? '#000' : (userBoard[i] === '' ? 'var(--text-main)' : (isCorrect ? 'var(--success)' : 'var(--danger)')),
+                            borderRight: (c === 2 || c === 5) ? '2px solid var(--primary)' : 'none',
+                            borderBottom: (r === 2 || r === 5) ? '2px solid var(--primary)' : 'none',
                         }} />
                     )
                 })}
             </div>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Fill the 9x9 grid so every row, column, and 3x3 box contains digits 1-9.</p>
+            <p style={{ color: 'var(--primary)', fontWeight: 600 }}>{status}</p>
         </div>
     );
 }
@@ -417,6 +455,7 @@ function SudokuGame() {
 // ---------------------------------------------------------
 // 9. QUICK LUDO GAME
 // ---------------------------------------------------------
+// ... (omitting QuickLudoGame code for brevity in this chunk, will replace it and add SnakeGame)
 function QuickLudoGame() {
     const [positions, setPositions] = useState([0, 0, 0, 0]); // Red, Green, Yellow, Blue
     const [turn, setTurn] = useState(0);
@@ -462,7 +501,6 @@ function QuickLudoGame() {
             return newPos;
         });
         
-        // if no winner yet, continue bots or return to user
         setWinner(prevWinner => {
             if (prevWinner === null) {
                 if (index < 3) setTimeout(() => botTurn(index + 1), 800);
@@ -479,27 +517,101 @@ function QuickLudoGame() {
                 {positions.map((pos, i) => (
                     <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', flex: 1 }}>
                         <span style={{ fontSize: '0.85rem', fontWeight: 700, color: colors[i] }}>{names[i]}</span>
-                        <div style={{ height: '180px', width: '40px', background: 'rgba(0,0,0,0.05)', borderRadius: '20px', position: 'relative', overflow: 'hidden', boxShadow: 'inset 0 4px 6px rgba(0,0,0,0.1)' }}>
-                            <motion.div initial={{ height: 0 }} animate={{ height: `${Math.min(100, (pos/20)*100)}%` }} transition={{ type: 'spring', stiffness: 100 }} style={{ position: 'absolute', bottom: 0, width: '100%', background: `linear-gradient(to top, ${colors[i]}, white)`, borderRadius: '15px 15px 0 0' }} />
+                        <div style={{ height: '150px', width: '40px', background: 'rgba(0,0,0,0.05)', borderRadius: '20px', position: 'relative', overflow: 'hidden' }}>
+                            <motion.div initial={{ height: 0 }} animate={{ height: `${Math.min(100, (pos/20)*100)}%` }} style={{ position: 'absolute', bottom: 0, width: '100%', background: `linear-gradient(to top, ${colors[i]}, white)`, borderRadius: '15px 15px 0 0' }} />
                         </div>
-                        <span style={{ fontWeight: 800, fontSize: '1.2rem', color: 'var(--text-main)' }}>{pos}/20</span>
+                        <span style={{ fontWeight: 800, fontSize: '1rem' }}>{pos}/20</span>
                     </div>
                 ))}
             </div>
             
             <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
                 {winner !== null ? (
-                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} style={{ color: colors[winner], fontWeight: 800, fontSize: '1.5rem', marginBottom: '1rem' }}>{names[winner]} Wins!</motion.div>
+                    <div style={{ color: colors[winner], fontWeight: 800, fontSize: '1.3rem' }}>{names[winner]} Wins!</div>
                 ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                        <div style={{ width: '50px', height: '50px', background: 'white', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.5rem', fontWeight: 800, color: 'var(--primary)', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', border: '2px solid var(--primary)' }}>{dice}</div>
-                        <button className={turn === 0 ? "btn-primary" : "btn-secondary"} onClick={rollDice} disabled={turn !== 0} style={{ padding: '0.8rem 2rem', fontSize: '1.1rem' }}>{turn === 0 ? "Roll Dice!" : "Bot Thinking..."}</button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <div style={{ width: '40px', height: '40px', background: 'white', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', fontWeight: 800, color: 'var(--primary)', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }}>{dice}</div>
+                        <button className={turn === 0 ? "btn-primary" : "btn-secondary"} onClick={rollDice} disabled={turn !== 0} style={{ padding: '0.6rem 1.5rem' }}>{turn === 0 ? "Roll!" : "..."}</button>
                     </div>
                 )}
-                {winner !== null && <button className="btn-secondary" onClick={() => {setPositions([0,0,0,0]); setWinner(null); setTurn(0);}} style={{ padding: '0.8rem 2rem' }}>Play Again</button>}
+                {winner !== null && <button className="btn-secondary" onClick={() => {setPositions([0,0,0,0]); setWinner(null); setTurn(0);}}>Reset</button>}
             </div>
         </div>
     );
 }
 
-export { TicTacToeGame, BreathingZone, RPSGame, ReactionTest, MemoryMatch, ChessGame, LuckyCardsGame, SudokuGame, QuickLudoGame };
+// ---------------------------------------------------------
+// 10. SNAKE GAME
+// ---------------------------------------------------------
+function SnakeGame() {
+    const GRID_SIZE = 15;
+    const [snake, setSnake] = useState([{ x: 7, y: 7 }]);
+    const [food, setFood] = useState({ x: 3, y: 3 });
+    const [dir, setDir] = useState({ x: 0, y: -1 });
+    const [gameOver, setGameOver] = useState(false);
+    const [score, setScore] = useState(0);
+
+    const moveSnake = useCallback(() => {
+        if (gameOver) return;
+        const newHead = { x: snake[0].x + dir.x, y: snake[0].y + dir.y };
+
+        if (newHead.x < 0 || newHead.x >= GRID_SIZE || newHead.y < 0 || newHead.y >= GRID_SIZE || snake.some(s => s.x === newHead.x && s.y === newHead.y)) {
+            setGameOver(true);
+            return;
+        }
+
+        const newSnake = [newHead, ...snake];
+        if (newHead.x === food.x && newHead.y === food.y) {
+            setScore(s => s + 1);
+            setFood({ x: Math.floor(Math.random() * GRID_SIZE), y: Math.floor(Math.random() * GRID_SIZE) });
+        } else {
+            newSnake.pop();
+        }
+        setSnake(newSnake);
+    }, [snake, dir, food, gameOver]);
+
+    useEffect(() => {
+        const handleKey = (e) => {
+            if (e.key === 'ArrowUp' && dir.y !== 1) setDir({ x: 0, y: -1 });
+            else if (e.key === 'ArrowDown' && dir.y !== -1) setDir({ x: 0, y: 1 });
+            else if (e.key === 'ArrowLeft' && dir.x !== 1) setDir({ x: -1, y: 0 });
+            else if (e.key === 'ArrowRight' && dir.x !== -1) setDir({ x: 1, y: 0 });
+        };
+        window.addEventListener('keydown', handleKey);
+        const interval = setInterval(moveSnake, 150);
+        return () => { window.removeEventListener('keydown', handleKey); clearInterval(interval); };
+    }, [moveSnake, dir]);
+
+    return (
+        <div className="glass-panel" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', maxWidth: '300px' }}>
+                <span style={{ fontWeight: 700, color: 'var(--primary)' }}>Score: {score}</span>
+                {gameOver && <span style={{ color: 'var(--danger)', fontWeight: 800 }}>Game Over!</span>}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: `repeat(${GRID_SIZE}, 1fr)`, width: '300px', height: '300px', background: '#e2e8f0', border: '4px solid #cbd5e1', borderRadius: '8px', overflow: 'hidden' }}>
+                {Array.from({ length: GRID_SIZE * GRID_SIZE }).map((_, i) => {
+                    const x = i % GRID_SIZE;
+                    const y = Math.floor(i / GRID_SIZE);
+                    const isSnake = snake.some(s => s.x === x && s.y === y);
+                    const isFood = food.x === x && food.y === y;
+                    return (
+                        <div key={i} style={{ background: isSnake ? 'var(--primary)' : isFood ? 'var(--secondary)' : 'transparent', borderRadius: isSnake ? '2px' : '50%' }} />
+                    );
+                })}
+            </div>
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '1rem' }}>
+                <button className="btn-secondary" onClick={() => { setSnake([{ x: 7, y: 7 }]); setGameOver(false); setScore(0); setDir({ x: 0, y: -1 }); }}>Reset</button>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '5px' }}>
+                    <div />
+                    <button className="btn-secondary" style={{ padding: '5px' }} onClick={() => dir.y !== 1 && setDir({ x: 0, y: -1 })}>▲</button>
+                    <div />
+                    <button className="btn-secondary" style={{ padding: '5px' }} onClick={() => dir.x !== 1 && setDir({ x: -1, y: 0 })}>◀</button>
+                    <button className="btn-secondary" style={{ padding: '5px' }} onClick={() => dir.y !== -1 && setDir({ x: 0, y: 1 })}>▼</button>
+                    <button className="btn-secondary" style={{ padding: '5px' }} onClick={() => dir.x !== -1 && setDir({ x: 1, y: 0 })}>▶</button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export { TicTacToeGame, BreathingZone, RPSGame, ReactionTest, MemoryMatch, ChessGame, LuckyCardsGame, SudokuGame, QuickLudoGame, SnakeGame };
