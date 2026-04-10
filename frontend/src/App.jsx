@@ -19,7 +19,7 @@ function Layout({ token, setToken }) {
 
   return (
     <div className="app-container" style={{ flexDirection: 'column' }}>
-      <nav className="glass-panel" style={{ borderRadius: 0, padding: '1rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--surface-border)', zIndex: 10, background: 'white' }}>
+      <nav className="glass-panel" style={{ borderRadius: 0, padding: '1rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--surface-border)', zIndex: 10, background: 'var(--surface)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '3rem' }}>
           <h2 style={{ color: 'var(--primary)', margin: 0, fontSize: '1.4rem', fontWeight: 800 }}>Aion DayPlanner ✨</h2>
           <div style={{ display: 'flex', gap: '2rem' }}>
@@ -40,7 +40,7 @@ function Layout({ token, setToken }) {
         </div>
       </nav>
       
-      <div style={{ flex: 1, overflowY: 'auto', background: 'var(--background)', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 1, overflowY: 'auto', background: 'transparent', display: 'flex', flexDirection: 'column' }}>
         <div style={{ flex: 1 }}>
           <Routes>
             <Route path="/" element={<DashboardView profile={profile} />} />
@@ -50,7 +50,7 @@ function Layout({ token, setToken }) {
             <Route path="/refresh" element={<RefreshView />} />
           </Routes>
         </div>
-        <footer style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem', borderTop: '1px solid rgba(0,0,0,0.05)', background: 'white', marginTop: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
+        <footer style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--text-muted)', fontSize: '0.9rem', borderTop: '1px solid rgba(255,255,255,0.05)', background: 'var(--surface)', marginTop: 'auto', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', backdropFilter: 'blur(20px)' }}>
           <div>&copy; {new Date().getFullYear()} Aion DayPlanner. Enhance your productivity and focus.</div>
           <div style={{ display: 'flex', gap: '1.5rem', fontWeight: 600 }}>
             <a href="#" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>GitHub</a>

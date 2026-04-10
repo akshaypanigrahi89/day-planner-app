@@ -38,6 +38,9 @@ class TaskBase(BaseModel):
     priority: Optional[str] = "Medium"
     start_time: Optional[str] = None
     end_time: Optional[str] = None
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+    person: Optional[str] = None
     completion_time: Optional[str] = None
     progress: Optional[int] = 0
     status: Optional[str] = "Todo"

@@ -6,7 +6,7 @@ import { Check, X, Play, Square, LayoutGrid, List } from 'lucide-react';
 const emptyTask = () => {
   const d = new Date();
   const localDateStr = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
-  return { title: '', category: '', date: localDateStr, day: d.toLocaleDateString('en-US',{weekday:'long'}), progress: 0, comment: '', subtasks_str: '', status: 'Todo', priority: 'Medium' };
+  return { title: '', category: '', start_date: localDateStr, end_date: '', progress: 0, comment: '', person: '', status: 'Todo', priority: 'Medium' };
 };
 
 const inputStyle = { margin:0, padding:'0.4rem', border:'1px solid var(--surface-border)', borderRadius:'4px', background:'var(--background)', width:'100%', fontSize:'0.82rem' };
@@ -46,10 +46,18 @@ export default function TaskView() {
     const valid = newTasks.filter(t => t.title.trim() !== '');
     if(!valid.length) return;
     const payload = valid.map(t => ({
-      ...t, status: t.status||'Todo', priority: t.priority||'Medium', subtasks: t.subtasks_str ? t.subtasks_str.split(',').map(s=>({title:s.trim(), done:false})) : []
+      ...t, status: t.status||'Todo', priority: t.priority||'Medium'
     }));
     await api.post('/tasks/bulk', payload);
     setNewTasks([emptyTask()]); fetchTasks();
+  };
+
+  const handleQuickAdd = async (e) => {
+    if (e.key === 'Enter' && e.target.value.trim() !== '') {
+      await api.post('/tasks/', { title: e.target.value, status: 'Todo' });
+      e.target.value = '';
+      fetchTasks();
+    }
   };
 
   const update = (i, f, v) => { const a=[...newTasks]; a[i][f]=v; setNewTasks(a); };
@@ -61,7 +69,7 @@ export default function TaskView() {
       {/* Header Log */}
       <div style={{ display:'flex', gap:'2rem', alignItems:'center' }}>
         <h2 style={{ fontSize:'1.8rem', color:'var(--text-main)' }}>Task Control Center</h2>
-        <div style={{ display:'flex', gap:'1.5rem', background:'white', padding:'0.8rem 1.5rem', borderRadius:'30px', boxShadow:'0 4px 15px rgba(0,0,0,0.03)', fontWeight:600 }}>
+        <div style={{ display:'flex', gap:'1.5rem', background:'var(--surface)', padding:'0.8rem 1.5rem', borderRadius:'30px', boxShadow:'0 4px 15px rgba(0,0,0,0.05)', fontWeight:600 }}>
           <span style={{ color:'var(--text-muted)' }}>Active: {tasks.filter(t=>!t.is_reviewed).length}</span>
           <span style={{ color:'var(--warning)' }}>Todo: {todoTasks.length}</span>
           <span style={{ color:'var(--primary)' }}>Doing: {doingTasks.length}</span>
@@ -78,7 +86,7 @@ export default function TaskView() {
         <motion.button whileHover={{ scale:1.05 }} onClick={()=>api.post('/tasks/review',{date:new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0]}).then(()=>{alert('Archived!'); fetchTasks();})} className="btn-primary" style={{ backgroundColor:'var(--text-main)', border:'none' }}>End-Day Review</motion.button>
       </div>
 
-        <div style={{ display: 'flex', gap: '1rem', background: 'var(--background)', padding: '0.4rem', borderRadius: '12px', alignSelf: 'flex-start' }}>
+        <div style={{ display: 'flex', gap: '1rem', background: 'var(--surface)', padding: '0.4rem', borderRadius: '12px', alignSelf: 'flex-start' }}>
           <button onClick={() => setActiveTab('kanban')} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: activeTab === 'kanban' ? 'white' : 'transparent', color: activeTab === 'kanban' ? 'var(--primary)' : 'var(--text-muted)', border: 'none', padding: '0.6rem 1.2rem', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, boxShadow: activeTab === 'kanban' ? '0 2px 5px rgba(0,0,0,0.05)' : 'none' }}>
              <LayoutGrid size={18} /> Kanban Board
           </button>
@@ -88,45 +96,37 @@ export default function TaskView() {
         </div>
 
       {activeTab === 'table' && (
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-panel" style={{ padding:'1.5rem', background:'white', overflowX:'auto' }}>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-panel" style={{ padding:'1.5rem', background:'var(--surface)', overflowX:'auto' }}>
         <h4 style={{ marginBottom:'1rem', color:'var(--text-muted)' }}>Excel Matrix Sync</h4>
         <table style={{ width:'100%', borderCollapse:'collapse', textAlign:'left', minWidth:'1100px' }}>
           <thead>
             <tr style={{ borderBottom:'2px solid var(--surface-border)', color:'var(--text-main)', fontSize:'0.85rem' }}>
-              <th style={{ padding:'0.5rem' }}>Date</th>
-              <th style={{ padding:'0.5rem' }}>Day</th>
-              <th style={{ padding:'0.5rem' }}>Task Title</th>
-              <th style={{ padding:'0.5rem' }}>Subtask Title</th>
+              <th style={{ padding:'0.5rem' }}>Task</th>
               <th style={{ padding:'0.5rem' }}>Categories</th>
-              <th style={{ padding:'0.5rem', minWidth:'120px' }}>% of Completion</th>
-              <th style={{ padding:'0.5rem' }}>Comment</th>
               <th style={{ padding:'0.5rem' }}>Status</th>
+              <th style={{ padding:'0.5rem' }}>Responsible Person</th>
+              <th style={{ padding:'0.5rem' }}>Start Date</th>
+              <th style={{ padding:'0.5rem' }}>End Date</th>
+              <th style={{ padding:'0.5rem' }}>Note</th>
               <th></th>
             </tr>
           </thead>
           <tbody>
             {newTasks.map((t, idx) => (
               <tr key={idx} style={{ borderBottom:'1px solid rgba(0,0,0,0.02)' }}>
-                <td style={{ padding:'0.5rem 0.2rem' }}>
-                  <input type="date" value={t.date} onChange={e=>{ 
-                    update(idx, 'date', e.target.value); 
-                    if(e.target.value) update(idx, 'day', new Date(e.target.value).toLocaleDateString('en-US',{weekday:'long'}));
-                  }} style={inputStyle} />
-                </td>
-                <td style={{ padding:'0.5rem 0.2rem', fontSize:'0.8rem', color:'var(--text-muted)' }}>{t.day}</td>
-                <td style={{ padding:'0.5rem 0.2rem' }}><input placeholder="Target..." value={t.title} onChange={e=>update(idx, 'title', e.target.value)} style={inputStyle} /></td>
-                <td style={{ padding:'0.5rem 0.2rem' }}><input placeholder="CSV string" value={t.subtasks_str} onChange={e=>update(idx, 'subtasks_str', e.target.value)} style={inputStyle} /></td>
-                <td style={{ padding:'0.5rem 0.2rem' }}><input placeholder="Tags..." value={t.category} onChange={e=>update(idx, 'category', e.target.value)} style={inputStyle} /></td>
-                <td style={{ padding:'0.5rem 0.2rem' }}>
-                  <div style={{ display:'flex', flexDirection:'column', gap:'0.3rem' }}>
-                    <input type="number" min="0" max="100" value={t.progress} onChange={e=>update(idx, 'progress', e.target.value)} style={{...inputStyle, width:'100%'}} />
-                    <div style={{ width:'100%', background:'var(--surface-border)', height:'4px', borderRadius:'2px', overflow:'hidden' }}><div style={{ width:`${t.progress}%`, background:'var(--primary)', height:'100%' }} /></div>
-                  </div>
-                </td>
-                <td style={{ padding:'0.5rem 0.2rem' }}><input placeholder="Notes..." value={t.comment} onChange={e=>update(idx, 'comment', e.target.value)} style={inputStyle} /></td>
+                <td style={{ padding:'0.5rem 0.2rem' }}><input placeholder="Task title..." value={t.title} onChange={e=>update(idx, 'title', e.target.value)} style={inputStyle} /></td>
+                <td style={{ padding:'0.5rem 0.2rem' }}><input placeholder="Categories..." value={t.category} onChange={e=>update(idx, 'category', e.target.value)} style={inputStyle} /></td>
                 <td style={{ padding:'0.5rem 0.2rem' }}>
                   <select value={t.status} onChange={e=>update(idx,'status',e.target.value)} style={inputStyle}><option>Todo</option><option>Doing</option><option>Done</option></select>
                 </td>
+                <td style={{ padding:'0.5rem 0.2rem' }}><input placeholder="Responsible Person..." value={t.person || ''} onChange={e=>update(idx, 'person', e.target.value)} style={inputStyle} /></td>
+                <td style={{ padding:'0.5rem 0.2rem' }}>
+                  <input type="date" value={t.start_date || ''} onChange={e=>update(idx, 'start_date', e.target.value)} style={inputStyle} />
+                </td>
+                <td style={{ padding:'0.5rem 0.2rem' }}>
+                  <input type="date" value={t.end_date || ''} onChange={e=>update(idx, 'end_date', e.target.value)} style={inputStyle} />
+                </td>
+                <td style={{ padding:'0.5rem 0.2rem' }}><input placeholder="Note..." value={t.comment} onChange={e=>update(idx, 'comment', e.target.value)} style={inputStyle} /></td>
                 <td style={{ padding:'0.5rem 0.2rem', textAlign:'center' }}>
                   <button onClick={()=>{ if(newTasks.length>1) setNewTasks(newTasks.filter((_,i)=>i!==idx)) }} style={{ background:'none', border:'none', color:'var(--danger)', cursor:'pointer' }}><X size={16}/></button>
                 </td>
@@ -147,11 +147,15 @@ export default function TaskView() {
         <div style={{ background:'transparent', padding:'0' }} onDragOver={e=>e.preventDefault()} onDrop={e=>handleDrop(e, 'Todo')}>
           <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.8rem', color:'var(--text-main)', fontSize: '1rem', fontWeight: 600, paddingBottom:'1rem', marginBottom:'0.5rem' }}>New task <span style={{ background: 'var(--surface-border)', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{todoTasks.length}</span></h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ padding: '1.2rem', background: 'var(--surface)', backdropFilter: 'blur(10px)', borderRadius: '12px', border: '2px dashed var(--primary)', marginBottom: '0.5rem', boxShadow: '0 4px 15px rgba(0,0,0,0.05)' }}>
+              <input type="text" placeholder="Write new task here..." onKeyDown={handleQuickAdd} style={{ width: '100%', border: 'none', background: 'transparent', margin: 0, padding: 0, fontSize: '1.05rem', outline: 'none', fontWeight: 600, color: 'var(--secondary)' }} />
+              <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.8rem' }}>Press <strong>Enter</strong> to save task</div>
+            </div>
             {todoTasks.map(t => (
-              <motion.div key={t.id} variants={getCardVariant} initial="hidden" animate="visible" whileHover={{ y:-4, boxShadow:'0 10px 20px rgba(0,0,0,0.06)' }} draggable onDragStart={e => e.dataTransfer.setData('taskId', t.id)} onClick={() => setEditingTask(t)} style={{ background: '#e0f2fe', borderRadius: '12px', padding: '1.2rem', display:'flex', flexDirection:'column', gap:'0.8rem', cursor:'grab', borderLeft: '5px solid #38bdf8' }}>
+              <motion.div key={t.id} variants={getCardVariant} initial="hidden" animate="visible" whileHover={{ y:-4, boxShadow:'0 10px 20px rgba(0,0,0,0.1)' }} draggable onDragStart={e => e.dataTransfer.setData('taskId', t.id)} onClick={() => setEditingTask(t)} style={{ background: 'var(--surface)', borderRadius: '12px', padding: '1.2rem', display:'flex', flexDirection:'column', gap:'0.8rem', cursor:'grab', borderLeft: '5px solid #38bdf8' }}>
                 <div style={{ display:'flex', justifyContent:'space-between', width:'100%' }}><strong style={{ color:'#0c4a6e', fontSize: '1.05rem' }}>{t.title}</strong></div>
                 <div style={{ display:'flex', gap:'0.5rem', justifyContent:'space-between', alignItems:'center' }}>
-                  <span style={{ fontSize:'0.75rem', padding:'0.3rem 0.6rem', background:'rgba(255,255,255,0.6)', color:'#0c4a6e', borderRadius: '4px', fontWeight: 600 }}>{t.category||'General'}</span>
+                  <span style={{ fontSize:'0.75rem', padding:'0.3rem 0.6rem', background:'white', color:'#0c4a6e', borderRadius: '4px', fontWeight: 600 }}>{t.category||'General'}</span>
                   <span style={{ fontSize:'0.8rem', color:'#0ea5e9', display: 'flex', alignItems: 'center', gap: '0.2rem' }}><Check size={14}/> {t.progress}%</span>
                 </div>
               </motion.div>
@@ -163,10 +167,10 @@ export default function TaskView() {
           <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.8rem', color:'var(--text-main)', fontSize: '1rem', fontWeight: 600, paddingBottom:'1rem', marginBottom:'0.5rem' }}>In progress <span style={{ background: 'var(--surface-border)', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{doingTasks.length}</span></h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {doingTasks.map(t => (
-              <motion.div key={t.id} variants={getCardVariant} initial="hidden" animate="visible" whileHover={{ y:-4, boxShadow:'0 10px 20px rgba(0,0,0,0.06)' }} draggable onDragStart={e => e.dataTransfer.setData('taskId', t.id)} onClick={() => setEditingTask(t)} style={{ background: '#fee2e2', borderRadius: '12px', padding: '1.2rem', display:'flex', flexDirection:'column', gap:'0.8rem', cursor:'grab', borderLeft: '5px solid #f87171' }}>
+              <motion.div key={t.id} variants={getCardVariant} initial="hidden" animate="visible" whileHover={{ y:-4, boxShadow:'0 10px 20px rgba(0,0,0,0.1)' }} draggable onDragStart={e => e.dataTransfer.setData('taskId', t.id)} onClick={() => setEditingTask(t)} style={{ background: 'var(--surface)', borderRadius: '12px', padding: '1.2rem', display:'flex', flexDirection:'column', gap:'0.8rem', cursor:'grab', borderLeft: '5px solid #f87171' }}>
                 <div style={{ display:'flex', justifyContent:'space-between', width:'100%' }}><strong style={{ color:'#7f1d1d', fontSize: '1.05rem' }}>{t.title}</strong></div>
                 <div style={{ display:'flex', gap:'0.5rem', width:'100%', justifyContent:'space-between', alignItems:'center' }}>
-                  <span style={{ fontSize:'0.75rem', padding:'0.3rem 0.6rem', background:'rgba(255,255,255,0.6)', color:'#7f1d1d', borderRadius: '4px', fontWeight: 600 }}>{t.category||'General'}</span>
+                  <span style={{ fontSize:'0.75rem', padding:'0.3rem 0.6rem', background:'white', color:'#7f1d1d', borderRadius: '4px', fontWeight: 600 }}>{t.category||'General'}</span>
                   <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', width:'100%', paddingLeft:'1rem' }}>
                      <span style={{ fontSize:'0.75rem', color:'#ef4444', fontWeight:600 }}>{t.progress}%</span>
                      <div style={{ width:'100%', background:'rgba(255,255,255,0.6)', height:'6px', borderRadius:'3px', overflow:'hidden', marginTop: '0.2rem' }}><div style={{ width:`${t.progress}%`, background:'#ef4444', height:'100%' }} /></div>
@@ -181,7 +185,7 @@ export default function TaskView() {
           <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.8rem', color:'var(--text-main)', fontSize: '1rem', fontWeight: 600, paddingBottom:'1rem', marginBottom:'0.5rem' }}>Completed <span style={{ background: 'var(--surface-border)', borderRadius: '50%', width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem', color: 'var(--text-muted)' }}>{doneTasks.length}</span></h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {doneTasks.map(t => (
-              <motion.div key={t.id} variants={getCardVariant} initial="hidden" animate="visible" whileHover={{ y:-4, boxShadow:'0 10px 20px rgba(0,0,0,0.06)' }} draggable onDragStart={e => e.dataTransfer.setData('taskId', t.id)} onClick={() => setEditingTask(t)} style={{ background: '#f8fafc', borderRadius: '12px', padding: '1.2rem', display:'flex', flexDirection:'column', gap:'0.8rem', cursor:'grab', borderLeft: '5px solid #94a3b8', border: '1px solid #e2e8f0', opacity: 0.8 }}>
+              <motion.div key={t.id} variants={getCardVariant} initial="hidden" animate="visible" whileHover={{ y:-4, boxShadow:'0 10px 20px rgba(0,0,0,0.1)' }} draggable onDragStart={e => e.dataTransfer.setData('taskId', t.id)} onClick={() => setEditingTask(t)} style={{ background: 'var(--surface)', borderRadius: '12px', padding: '1.2rem', display:'flex', flexDirection:'column', gap:'0.8rem', cursor:'grab', borderLeft: '5px solid #94a3b8', border: '1px solid rgba(0,0,0,0.05)', opacity: 0.8 }}>
                 <div style={{ display:'flex', justifyContent:'space-between', width:'100%' }}>
                   <strong style={{ color:'#475569', fontSize: '1.05rem', textDecoration: 'line-through' }}>{t.title}</strong>
                   <div style={{ background:'#cbd5e1', borderRadius:'50%', padding:'0.2rem', color:'white', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Check size={14} strokeWidth={3} /></div>
@@ -205,14 +209,18 @@ export default function TaskView() {
                 e.preventDefault(); 
                 const d=new FormData(e.target); 
                 const subStr=d.get('subtasks_str'); 
-                const data={ title:d.get('title'), category:d.get('category'), comment:d.get('comment'), priority:d.get('priority')||'Medium', date:d.get('date'), progress:parseInt(d.get('progress'))||0, status:'Todo', subtasks: subStr?subStr.split(',').map(s=>({title:s.trim(),done:false})):[] };
+                const data={ title:d.get('title'), category:d.get('category'), comment:d.get('comment'), priority:d.get('priority')||'Medium', start_date:d.get('start_date'), end_date:d.get('end_date'), person:d.get('person'), progress:parseInt(d.get('progress'))||0, status:'Todo', subtasks: subStr?subStr.split(',').map(s=>({title:s.trim(),done:false})):[] };
                 await api.put(`/tasks/${editingTask.id}`, data);
                 setEditingTask(null); fetchTasks();
               }} style={{ display:'flex', flexDirection:'column', gap:'1rem' }}>
               <input name="title" defaultValue={editingTask.title} placeholder="Task title" required />
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1rem' }}>
-                <div><label style={{ fontSize:'0.85rem', color:'var(--text-muted)' }}>Date</label><input type="date" name="date" defaultValue={editingTask.date} /></div>
+                <div><label style={{ fontSize:'0.85rem', color:'var(--text-muted)' }}>Start Date</label><input type="date" name="start_date" defaultValue={editingTask.start_date || editingTask.date} /></div>
+                <div><label style={{ fontSize:'0.85rem', color:'var(--text-muted)' }}>End Date</label><input type="date" name="end_date" defaultValue={editingTask.end_date} /></div>
+              </div>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'1rem' }}>
                 <div><label style={{ fontSize:'0.85rem', color:'var(--text-muted)' }}>Category</label><input name="category" defaultValue={editingTask.category} /></div>
+                <div><label style={{ fontSize:'0.85rem', color:'var(--text-muted)' }}>Person</label><input name="person" defaultValue={editingTask.person} /></div>
               </div>
               <div style={{ display:'grid', gridTemplateColumns:'1.5fr 1fr', gap:'1rem', alignItems:'center' }}>
                  <div style={{ display:'flex', flexDirection:'column', gap:'0.2rem' }}>

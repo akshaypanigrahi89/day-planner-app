@@ -7,18 +7,7 @@ import { Droplet, Plus, Minus, Bell, Star, GlassWater } from 'lucide-react';
 export default function DashboardView({ profile }) {
   const [tasks, setTasks] = useState([]);
   const [insights, setInsights] = useState("Loading AI insights...");
-  const [water, setWater] = useState(parseInt(localStorage.getItem('water_intake')) || 0);
   const [selectedDate] = useState(new Date().toISOString().split('T')[0]);
-
-  useEffect(() => {
-    localStorage.setItem('water_intake', water);
-  }, [water]);
-
-  const requestNotification = () => {
-    Notification.requestPermission().then(p => {
-      if (p === 'granted') new Notification('Water Reminder', { body: "Time to hydrate! Drink a glass of water." });
-    });
-  };
 
   useEffect(() => {
     api.get('/tasks/').then(res => {
@@ -36,8 +25,6 @@ export default function DashboardView({ profile }) {
   const done = currentTasks.filter(t => t.status === 'Done').length;
   const completionRate = currentTasks.length ? Math.round((done / currentTasks.length) * 100) : 0;
 
-  const topPriorities = currentTasks.filter(t => t.priority === 'High' && t.status !== 'Done');
-
   const pieData = [
     { name: 'Todo', value: todo, color: '#f59e0b' },
     { name: 'Doing', value: doing, color: '#4f46e5' },
@@ -52,23 +39,6 @@ export default function DashboardView({ profile }) {
     return acc;
   }, []);
 
-  const PlannerBlock = ({ title, placeholder, color, borderColor }) => {
-    const blockKey = `planner_block_${title.replace(/\s+/g, '')}`;
-    const [text, setText] = useState(localStorage.getItem(blockKey) || "");
-    const [isHovered, setIsHovered] = useState(false);
-    return (
-      <motion.div 
-        onMouseEnter={() => setIsHovered(true)} 
-        onMouseLeave={() => setIsHovered(false)}
-        animate={{ scale: isHovered ? 1.02 : 1, y: isHovered ? -2 : 0, boxShadow: isHovered ? '0 10px 20px rgba(0,0,0,0.05)' : 'none' }}
-        style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', background: isHovered ? 'white' : (color || 'var(--background)'), padding: '1rem', borderRadius: '12px', borderLeft: `6px solid ${borderColor || 'var(--primary)'}`, transition: 'background 0.3s' }}
-      >
-        <span style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)' }}>{title}</span>
-        <textarea value={text} onChange={e => { setText(e.target.value); localStorage.setItem(blockKey, e.target.value) }} style={{ padding: '0.8rem', background: 'rgba(255,255,255,0.8)', margin: 0, border: '1px solid rgba(0,0,0,0.05)', borderRadius: '8px', minHeight: '75px', resize: 'vertical', fontFamily: 'inherit', fontSize: '0.9rem', color: 'var(--text-main)' }} placeholder={placeholder || `Plan your ${title.toLowerCase()}...\n- Note...`} />
-      </motion.div>
-    );
-  };
-
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} style={{ padding: '2rem 4rem', display: 'flex', flexDirection: 'column', gap: '2rem', height: '100%', overflowY: 'auto' }}>
       
@@ -76,7 +46,7 @@ export default function DashboardView({ profile }) {
         <h2 style={{ fontSize: '1.8rem', color: 'var(--text-main)' }}>
            Hi {profile?.full_name?.split(' ')[0] || 'User'}, here is your dashboard
         </h2>
-        <div style={{ display: 'flex', gap: '1.5rem', background: 'white', padding: '0.8rem 1.5rem', borderRadius: '30px', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', fontWeight: 600 }}>
+        <div style={{ display: 'flex', gap: '1.5rem', background: 'var(--surface)', padding: '0.8rem 1.5rem', borderRadius: '30px', boxShadow: '0 4px 15px rgba(0,0,0,0.05)', fontWeight: 600 }}>
           <span style={{ color: 'var(--text-muted)' }}>Total: {currentTasks.length}</span>
           <span style={{ color: 'var(--warning)' }}>Todo: {todo}</span>
           <span style={{ color: 'var(--primary)' }}>Doing: {doing}</span>
@@ -86,51 +56,14 @@ export default function DashboardView({ profile }) {
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem', flex: 1 }}>
         {/* Top Summary Grid */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 2fr 1fr', gap: '2rem' }}>
-          
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '2rem' }}>
           {/* Completion Rate */}
-          <motion.div whileHover={{ translateY: -5, scale: 1.02, boxShadow: '0 20px 40px rgba(0,0,0,0.05)' }} className="glass-panel" style={{ padding: '2rem', background: 'linear-gradient(135deg, rgba(245,158,11,0.03), rgba(79,70,229,0.03))', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-            <h3 style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontWeight: 500 }}>Completion Rate</h3>
+          <motion.div whileHover={{ translateY: -5, scale: 1.01, boxShadow: '0 20px 40px rgba(0,0,0,0.05)' }} className="glass-panel" style={{ padding: '2rem', background: 'linear-gradient(135deg, rgba(245,158,11,0.03), rgba(79,70,229,0.03))', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <h3 style={{ color: 'var(--text-muted)', marginBottom: '1rem', fontWeight: 500 }}>Daily Completion Rate</h3>
             <div style={{ fontSize: '4rem', fontWeight: 800, background: 'linear-gradient(135deg, var(--secondary), var(--primary))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               {completionRate}%
             </div>
             <p style={{ marginTop: '1rem', textAlign: 'center', color: 'var(--success)', fontWeight: 600 }}>{done} of {currentTasks.length} tasks completed!</p>
-          </motion.div>
-          
-          {/* Daily Reviews and Goals */}
-          <div style={{ display: 'grid', gridTemplateRows: '1fr 1fr 1fr', gap: '1rem' }}>
-            <motion.div whileHover={{ translateY: -3, scale: 1.01, boxShadow: '0 10px 25px rgba(16,185,129,0.1)' }} className="glass-panel" style={{ padding: '1.5rem', background: 'linear-gradient(135deg, rgba(16,185,129,0.03), rgba(20,184,166,0.03))', display: 'flex', flexDirection: 'column' }}>
-              <h3 style={{ color: 'var(--primary)', marginBottom: '0.5rem', fontSize: '1rem' }}>Daily Summary Review</h3>
-              <textarea placeholder="Write a summary..." defaultValue={localStorage.getItem('daily_summary')} onChange={(e) => localStorage.setItem('daily_summary', e.target.value)} style={{ padding: '0.8rem', border: 'none', background: 'rgba(255,255,255,0.7)', borderRadius: '8px', resize: 'vertical', minHeight: '40px', fontSize: '0.85rem', width: '100%', color: 'var(--text-main)', fontFamily: 'inherit' }} />
-            </motion.div>
-            <motion.div whileHover={{ translateY: -3, scale: 1.01, boxShadow: '0 10px 25px rgba(239,68,68,0.1)' }} className="glass-panel" style={{ padding: '1.5rem', background: 'linear-gradient(135deg, rgba(239,68,68,0.03), rgba(249,115,22,0.03))', display: 'flex', flexDirection: 'column' }}>
-              <h3 style={{ color: 'var(--danger)', marginBottom: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem' }}><Star size={16} fill="var(--danger)"/> Priorities ({topPriorities.length})</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', overflowY: 'auto', maxHeight: '100px' }}>
-                {topPriorities.length === 0 ? <span style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>No high-priority tasks pending!</span> : topPriorities.map(t => (
-                    <div key={t.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem', background: 'rgba(255,255,255,0.7)', borderRadius: '4px' }}>
-                      <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>{t.title}</span><span style={{ color: 'var(--primary)', fontSize: '0.8rem' }}>{t.status}</span>
-                    </div>
-                ))}
-              </div>
-            </motion.div>
-            <motion.div whileHover={{ translateY: -3, scale: 1.01, boxShadow: '0 10px 25px rgba(139,92,246,0.1)' }} className="glass-panel" style={{ padding: '1.5rem', background: 'linear-gradient(135deg, rgba(139,92,246,0.03), rgba(168,85,247,0.03))', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-              <h3 style={{ color: 'var(--primary)', marginBottom: '0.5rem', fontSize: '1rem' }}>Today's Goal Focus</h3>
-              <input type="text" placeholder="Most important goal?" defaultValue={localStorage.getItem('today_goal')} onChange={(e) => localStorage.setItem('today_goal', e.target.value)} style={{ padding: '0.8rem', border: 'none', background: 'rgba(255,255,255,0.7)', borderRadius: '8px', fontWeight: 500, color: 'var(--text-main)', width: '100%' }} />
-            </motion.div>
-          </div>
-
-          {/* Water Tracker */}
-          <motion.div whileHover={{ translateY: -5, scale: 1.02, boxShadow: '0 20px 40px rgba(56,189,248,0.15)' }} className="glass-panel" style={{ padding: '1.5rem', background: 'linear-gradient(135deg, rgba(56,189,248,0.05), rgba(59,130,246,0.05))', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', overflow: 'hidden' }}>
-            <button onClick={requestNotification} style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'white', border: '1px solid var(--surface-border)', borderRadius: '50%', padding: '0.5rem', cursor: 'pointer', color: 'var(--primary)', boxShadow: '0 2px 5px rgba(0,0,0,0.05)' }} title="Send Hydration Reminder"><Bell size={16} /></button>
-            <h3 style={{ color: 'var(--primary)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 800 }}><GlassWater color="var(--primary)" size={20} /> Water Tracker</h3>
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', width: '100%', padding: '0 0.5rem' }}>
-              {[...Array(8)].map((_, i) => (<motion.div key={i} animate={{ scale: i < water ? 1.15 : 1, y: i < water ? -2 : 0 }} style={{ color: i < water ? 'var(--primary)' : '#cbd5e1', filter: i < water ? 'drop-shadow(0 4px 6px rgba(79, 70, 229, 0.3))' : 'none', flexShrink: 0 }}><GlassWater fill={i < water ? 'rgba(79, 70, 229, 0.4)' : 'transparent'} stroke={i < water ? 'var(--primary)' : '#94a3b8'} strokeWidth={2.5} size={22} /></motion.div>))}
-            </div>
-            <div style={{ display: 'flex', gap: '1.5rem', marginTop: '1.5rem', alignItems: 'center' }}>
-              <motion.button whileTap={{ scale: 0.9 }} className="btn-secondary" onClick={() => setWater(Math.max(0, water - 1))} style={{ padding: '0.6rem', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Minus size={18}/></motion.button>
-              <span style={{ fontWeight: 800, fontSize: '1.4rem', display: 'flex', alignItems: 'center', color: 'var(--text-main)' }}>{water} <span style={{ fontSize: '1rem', color: 'var(--text-muted)', marginLeft: '4px', fontWeight: 600 }}>/ 8</span></span>
-              <motion.button whileTap={{ scale: 0.9 }} className="btn-primary" onClick={() => { setWater(Math.min(8, water + 1)); if(water<8) requestNotification(); }} style={{ padding: '0.6rem', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(79,70,229,0.3)' }}><Plus size={18}/></motion.button>
-            </div>
           </motion.div>
         </div>
 
